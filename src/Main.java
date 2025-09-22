@@ -172,7 +172,6 @@ class Mypanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // วาดพื้นหลังเต็มจอ
         g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
 
         // วาดอุกกาบาตที่ยังมีชีวิต

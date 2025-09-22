@@ -12,6 +12,4 @@ class config {
     // ช่วยให้ชนง่ายขึ้น (รูปมีขอบโปร่งใสได้)
     static final double COLLISION_FACTOR = 0.90; // 0.8–1.0 ยิ่งต่ำยิ่งชนง่าย
 
-    static final String ROOT = System.getProperty("user.dir")
-            + File.separator + "src" + File.separator + "Meteorpic" + File.separator;
 }

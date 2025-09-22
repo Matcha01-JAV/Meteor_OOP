@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,7 +18,7 @@ public class Main {
                 if (n > 0) meteorCount = n;
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "ค่าไม่ถูกต้อง จะใช้ค่าเริ่มต้น = 5");
+            JOptionPane.showMessageDialog(null, "Invalid Use defualt = 5");
         }
 
         // สร้างเฟรม
@@ -42,19 +43,18 @@ class Mainframe extends JFrame {
 
 class Mypanel extends JPanel {
     // โหลดรูป
-    private static final String ROOT = config.ROOT;
-    private final Image bg = new ImageIcon(ROOT + "background.png").getImage();
-    private final Image m1 = new ImageIcon(ROOT + "Metorite1.png").getImage();
-    private final Image m2 = new ImageIcon(ROOT + "Metorite2.png").getImage();
-    private final Image m3 = new ImageIcon(ROOT + "Metorite3.png").getImage();
+    Image bg = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir")+ File.separator+"Meteorpic"+File.separator+"background.png");
+    Image m1 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir")+ File.separator+"Meteorpic"+File.separator+"Metorite1.png");
+    Image m2 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir")+ File.separator+"Meteorpic"+File.separator+"Metorite2.png");
+    Image m3 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir")+ File.separator+"Meteorpic"+File.separator+"Metorite3.png");
 
     // สถานะของอุกกาบาต
-    private final double[] meteorX;     // ตำแหน่งแกน meteorX (ซ้ายบน)
-    private final double[] meteorY;     // ตำแหน่งแกน meteorY (ซ้ายบน)
-    private final double[] MoveX;    // ความเร็วแกน meteorX
-    private final double[] MoveY;    // ความเร็วแกน meteorY
-    private final boolean[] alive;// ยังอยู่หรือไม่
-    private final int[] type;     // ใช้เลือกรูป 1..3
+    double[] meteorX;     // ตำแหน่งแกน meteorX (ซ้ายบน)
+    double[] meteorY;     // ตำแหน่งแกน meteorY (ซ้ายบน)
+    double[] MoveX;    // ความเร็วแกน meteorX
+    double[] MoveY;    // ความเร็วแกน meteorY
+    boolean[] alive;// ยังอยู่หรือไม่
+    int[] type;     // ใช้เลือกรูป 1..3
 
     private final Timer timer = new Timer(true);
 

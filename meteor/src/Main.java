@@ -21,14 +21,13 @@ public class Main {
             JOptionPane.showMessageDialog(null, "ค่าไม่ถูกต้อง จะใช้ค่าเริ่มต้น = 5");
         }
 
-        // สร้างเฟรม
         Mainframe mf = new Mainframe();
         Mypanel mp = new Mypanel(meteorCount);
         mf.add(mp);
         mf.setVisible(true);
     }
 }
-
+// สร้างเฟรม
 class Mainframe extends JFrame {
     Mainframe() {
         setSize(config.PANEL_W, config.PANEL_H);
@@ -38,37 +37,43 @@ class Mainframe extends JFrame {
     }
 }
 
-/** ค่าคงที่ของเกม */
-
 
 class Mypanel extends JPanel {
-    // โหลดรูป
-    Image bg = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir")+ File.separator+"meteor"+ File.separator+"src"+ File.separator+"Meteorpic"+ File.separator+"background.png");
+    // รูปภาพ
+    Image bg = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir")+ File.separator+"meteor"+ File.separator+"src"+ File.separator+"Meteorpic"+ File.separator+"Background2.jpg");
     Image m1 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir")+ File.separator+"meteor"+ File.separator+"src"+ File.separator+"Meteorpic"+ File.separator+"Metorite1.png");
     Image m2 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir")+ File.separator+"meteor"+ File.separator+"src"+ File.separator+"Meteorpic"+ File.separator+"Metorite2.png");
     Image m3 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir")+ File.separator+"meteor"+ File.separator+"src"+ File.separator+"Meteorpic"+ File.separator+"Metorite3.png");
+    Image m4 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir")+ File.separator+"meteor"+ File.separator+"src"+ File.separator+"Meteorpic"+ File.separator+"explode.png");
 
-    // สถานะของอุกกาบาต
-    double[] meteorX;     // ตำแหน่งแกน meteorX (ซ้ายบน)
-    double[] meteorY;     // ตำแหน่งแกน meteorY (ซ้ายบน)
-    double[] MoveX;    // ความเร็วแกน meteorX
-    double[] MoveY;    // ความเร็วแกน meteorY
-    boolean[] alive;// ยังอยู่หรือไม่
-    int[] type;     // ใช้เลือกรูป 1..3
+    // สถานะอุกกาบาต
+    double[] meteorX;
+    double[] meteorY;
+    double[] MoveX;
+    double[] MoveY;
+    boolean[] alive;
+    int[] type;
+    double[] epsX;     // ระเบิด (x)
+    double[] epsY;     // ระเบิด (y)
+    int[] epsstay;     // เวลาของระเบิด
 
     Timer timer = new Timer(true);
+    Random rnd = new Random();
 
     Mypanel(int meteorCount) {
         setPreferredSize(new Dimension(config.PANEL_W, config.PANEL_H));
 
         meteorX = new double[meteorCount];
         meteorY = new double[meteorCount];
-        MoveX = new double[meteorCount];
-        MoveY = new double[meteorCount];
-        alive = new boolean[meteorCount];
-        type = new int[meteorCount];
+        MoveX   = new double[meteorCount];
+        MoveY   = new double[meteorCount];
+        alive   = new boolean[meteorCount];
+        type    = new int[meteorCount];
 
-        Random rnd = new Random();
+        // [ADD] อาร์เรย์เอฟเฟกต์ระเบิด
+        epsX   = new double[meteorCount];
+        epsY   = new double[meteorCount];
+        epsstay = new int[meteorCount];
 
         // สุ่มค่าเริ่มต้น
         for (int i = 0; i < meteorCount; i++) {
@@ -82,18 +87,31 @@ class Mypanel extends JPanel {
 
             alive[i] = true;
             type[i] = 1 + rnd.nextInt(3); // 1..3
+
+            epsstay[i] = 0; // ยังไม่มีระเบิด
         }
 
-        // อัปเดต ~60 FPS
+        // ~60 FPS
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override public void run() {
                 updateMotion();
+                updateBooms(); // ลดอายุระเบิด
                 SwingUtilities.invokeLater(() -> repaint());
             }
         }, 0, 16);
     }
 
-    /** อัปเดตการเคลื่อนที่ + ชนขอบ + ชนกัน */
+    //เวลาเอฟเฟกต์ระเบิด
+    private void updateBooms() {
+        for (int i = 0; i < epsstay.length; i++) {
+            if (epsstay[i] > 0)
+            {
+                epsstay[i]--;
+            }
+        }
+    }
+
+    // อัปเดตการเคลื่อนที่ + ชนขอบ + ตรวจชนกัน
     private void updateMotion() {
         for (int i = 0; i < meteorX.length; i++) {
             if (!alive[i]) continue;
@@ -104,7 +122,7 @@ class Mypanel extends JPanel {
 
             boolean bounced = false;
 
-            // ขอบซ้าย/ขวา: ล็อกพอดี + เด้งกลับ + เร่งความเร็ว
+            // ขอบซ้าย/ขวา
             if (meteorX[i] <= 0) {
                 meteorX[i] = 0;
                 MoveX[i] = Math.abs(MoveX[i]);
@@ -126,7 +144,7 @@ class Mypanel extends JPanel {
                 bounced = true;
             }
 
-            // เร่งเมื่อชนขอบ (คุมเพดาน)
+            // เร่งนิดหน่อยตอนชนขอบ (คุมเพดาน)
             if (bounced) {
                 double speed = Math.hypot(MoveX[i], MoveY[i]) * config.BOUNCE_ACCEL;
                 if (speed > config.MAX_SPEED) speed = config.MAX_SPEED;
@@ -136,11 +154,11 @@ class Mypanel extends JPanel {
             }
         }
 
-        // ตรวจชนกัน (วงกลม) แล้วหายทั้งคู่
+        // ตรวจชนกันและสร้างระเบิด (ไม่เปลี่ยนทิศลูกที่รอด)
         checkMeteorCollisions();
     }
 
-    /** ตรวจชนกันแบบวงกลม (ใช้จุดศูนย์กลาง + ระยะชนปรับด้วย COLLISION_FACTOR) */
+    // ตรวจชนกันแบบวงกลม + ทำระเบิด
     private void checkMeteorCollisions() {
         final double hitDiameter = config.METEORITE_SIZE * config.COLLISION_FACTOR;
         final double minDistSq = hitDiameter * hitDiameter;
@@ -162,7 +180,23 @@ class Mypanel extends JPanel {
                 double distSq = dx * dx + dy * dy;
 
                 if (distSq < minDistSq) {
-                    alive[i] = false;
+                    // จุดชน
+                    double midX = (cx1 + cx2) / 2.0;
+                    double midY = (cy1 + cy2) / 2.0;
+
+                    // เก็บเอฟเฟกต์ไว้ในช่อง i (หรือ j ก็ได้)
+                    epsX[i] = midX;
+                    epsY[i] = midY;
+                    epsstay[i] = 15; // ~0.25 วินาทีที่ 60FPS
+
+                    // ให้หายไป 1 ลูกแบบสุ่ม
+                    if (rnd.nextBoolean()) {
+                        alive[j] = false;
+                    } else {
+                        alive[i] = false;
+                    }
+
+                    // หมายเหตุ: ไม่แตะ moveX/moveY ของลูกที่รอด
                 }
             }
         }
@@ -172,7 +206,7 @@ class Mypanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // วาดพื้นหลังเต็มจอ
+        // พื้นหลังเต็มจอ
         g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
 
         // วาดอุกกาบาตที่ยังมีชีวิต
@@ -180,17 +214,27 @@ class Mypanel extends JPanel {
         for (int i = 0; i < meteorX.length; i++) {
             if (!alive[i]) continue;
 
-            Image sprite = switch (type[i]) {
-                case 1 -> m1;
-                case 2 -> m2;
-                default -> m3;
-            };
+            Image sprite;
+            if (type[i] == 1)      sprite = m1;
+            else if (type[i] == 2) sprite = m2;
+            else                   sprite = m3;
+
             g.drawImage(sprite,
-                    (int) Math.round(meteorX[i]),
-                    (int) Math.round(meteorY[i]),
+                    (int)Math.round(meteorX[i]),
+                    (int)Math.round(meteorY[i]),
                     config.METEORITE_SIZE, config.METEORITE_SIZE, this);
 
             aliveCount++;
+        }
+
+        // วาดเอฟเฟกต์ระเบิด
+        for (int i = 0; i < epsstay.length; i++) {
+            if (epsstay[i] > 0) {
+                g.drawImage(m4,
+                        (int)(epsX[i] - config.METEORITE_SIZE / 2.0),
+                        (int)(epsY[i] - config.METEORITE_SIZE / 2.0),
+                        config.METEORITE_SIZE, config.METEORITE_SIZE, this);
+            }
         }
 
         // HUD

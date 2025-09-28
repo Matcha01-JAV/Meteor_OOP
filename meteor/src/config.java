@@ -8,10 +8,8 @@ class config {
     static final double MIN_SPEED = 1.2;     // px/tick
     static final double MAX_SPEED = 12.0;    // เพดานความเร็ว
     static final double BOUNCE_ACCEL = 1.12; // คูณความเร็วเมื่อชนขอบ
-
-    // ช่วยให้ชนง่ายขึ้น (รูปมีขอบโปร่งใสได้)
+    static final int FPS_MS = 16;                 // ~60 FPS
+     static final int EXPLOSION_MS = 250;          // ระเบิดแสดงกี่ ms
     static final double COLLISION_FACTOR = 0.90; // 0.8–1.0 ยิ่งต่ำยิ่งชนง่าย
 
-    static final String ROOT = System.getProperty("user.dir")
-            + File.separator + "src" + File.separator + "Meteorpic" + File.separator;
 }

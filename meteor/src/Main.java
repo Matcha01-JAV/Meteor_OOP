@@ -43,19 +43,18 @@ class Mypanel extends JPanel {
     Image m3 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "meteor" + File.separator + "src" + File.separator + "Meteorpic" + File.separator + "Metorite3.png");
     Image m4 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "meteor" + File.separator + "src" + File.separator + "Meteorpic" + File.separator + "explode.png");
 
-    private final Random rnd = new Random();
-    private JLabel bgLabel;
+    final Random rnd = new Random();
+    JLabel bgLabel;
     // Meteors
-    private Meteor[] meteors;
+    Meteor[] meteors;
     // HUD
-    private final JLabel hud = new JLabel("Meteors: 0");
+    final JLabel hud = new JLabel("Meteors: 0");
     // เธรดตรวจชน + สถานะการทำงาน
-    private Thread collisionThread;
-    volatile boolean running = true;
+    Thread collisionThread;
+    boolean running = true;
 
     // helper: สร้าง ImageIcon จาก Image พร้อม scale
     private static ImageIcon iconOf(Image img, int w, int h) {
-        // ใช้ getScaledInstance เพื่อให้พอดีกับขนาด JLabel
         Image scaled = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
         return new ImageIcon(scaled);
     }
@@ -106,8 +105,6 @@ class Mypanel extends JPanel {
             th.start();
         }
 
-        // ให้พื้นหลังอยู่ล่างสุดเสมอ
-        setComponentZOrder(bgLabel, getComponentCount() - 1);
 
 
         class FThread extends Thread {
@@ -151,7 +148,6 @@ class Mypanel extends JPanel {
         }
         return c;
     }
-
     void spawnExplosion(int x, int y) {
         final JLabel ex = new JLabel(iconOf(m4, config.METEORITE_SIZE, config.METEORITE_SIZE));
         ex.setBounds(x, y, config.METEORITE_SIZE, config.METEORITE_SIZE);

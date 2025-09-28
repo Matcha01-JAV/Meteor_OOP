@@ -246,15 +246,22 @@ class Mypanel extends JPanel {
                         bounce = true;
                     }
                     if (bounce) {
-                        double sp = Math.hypot(m.dx, m.dy) * config.BOUNCE_ACCEL;
-                        if (sp > config.MAX_SPEED) sp = config.MAX_SPEED;
-                        double a = Math.atan2(m.dy, m.dx);
-                        m.dx = Math.cos(a) * sp;
-                        m.dy = Math.sin(a) * sp;
+                        double len = Math.hypot(m.dx, m.dy);
+                        double sp = len * config.BOUNCE_ACCEL;
+                        if (sp > config.MAX_SPEED)
+                        {
+                            sp = config.MAX_SPEED;
+                        }
+                        if (len != 0)
+                        {
+                            m.dx = (m.dx / len) * sp;
+                            m.dy = (m.dy / len) * sp;
+                        }
                     }
 
-                    final int fx = (int) Math.round(m.x);
-                    final int fy = (int) Math.round(m.y);
+
+                    int fx = (int) Math.round(m.x);
+                    int fy = (int) Math.round(m.y);
                     m.setLocation(fx, fy);
                     Thread.sleep(config.FPS_MS);
                 }

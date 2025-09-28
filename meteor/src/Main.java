@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.io.File;
 import java.util.Random;
 
@@ -14,7 +13,7 @@ public class Main {
                 if (n > 0) meteorCount = n;
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "ค่าไม่ถูกต้อง จะใช้ค่าเริ่มต้น = 5");
+            JOptionPane.showMessageDialog(null, "Invalid! Use Default Amount = 5");
         }
 
         Mainframe mf = new Mainframe();
@@ -43,12 +42,12 @@ class Mypanel extends JPanel {
     Image m3 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "meteor" + File.separator + "src" + File.separator + "Meteorpic" + File.separator + "Metorite3.png");
     Image m4 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "meteor" + File.separator + "src" + File.separator + "Meteorpic" + File.separator + "explode.png");
 
-    final Random rnd = new Random();
+    Random rnd = new Random();
     JLabel bgLabel;
     // Meteors
     Meteor[] meteors;
     // HUD
-    final JLabel hud = new JLabel("Meteors: 0");
+    JLabel hud = new JLabel("Meteors: 0");
     // เธรดตรวจชน + สถานะการทำงาน
     Thread collisionThread;
     boolean running = true;
@@ -105,8 +104,6 @@ class Mypanel extends JPanel {
             th.start();
         }
 
-
-
         class FThread extends Thread {
             private final Mypanel panel;
             FThread(Mypanel panel) {
@@ -134,12 +131,12 @@ class Mypanel extends JPanel {
         // เธรดตรวจชน
         FThread hudThread = new FThread(this);
         hudThread.start();
-        collisionThread = new Collision(this);
+        collisionThread = new MeteorCheck(this);
         collisionThread.setDaemon(true);
         collisionThread.start();
     }
 
-    private int getAliveCount() {
+    int getAliveCount() {
         int c = 0;
         for (Meteor m : meteors) {
             if (m.alive) {
@@ -149,7 +146,7 @@ class Mypanel extends JPanel {
         return c;
     }
     void spawnExplosion(int x, int y) {
-        final JLabel ex = new JLabel(iconOf(m4, config.METEORITE_SIZE, config.METEORITE_SIZE));
+        JLabel ex = new JLabel(iconOf(m4, config.METEORITE_SIZE, config.METEORITE_SIZE));
         ex.setBounds(x, y, config.METEORITE_SIZE, config.METEORITE_SIZE);
         // อัปเดต UI ตรงๆ (ไม่ผ่าน Runnable)
         add(ex);
@@ -179,7 +176,7 @@ class Mypanel extends JPanel {
     }
 
     // อุกกาบาตเป็น JLabel
-    static  class Meteor extends JLabel {
+class Meteor extends JLabel {
         Mypanel panel;
         boolean alive = true;
         double x, y, dx, dy;
@@ -211,9 +208,9 @@ class Mypanel extends JPanel {
             return y + getHeight() / 2.0;
         }
     }
-    static class MeteorMove extends Thread {
-        private final Meteor m;
-        private final Mypanel p;
+class MeteorMove extends Thread {
+        Meteor m;
+        Mypanel p;
 
         MeteorMove(Meteor meteor, Mypanel panel) {
             this.m = meteor;
@@ -269,17 +266,17 @@ class Mypanel extends JPanel {
             }
         }
     }
-    static class Collision extends Thread {
-        private final Mypanel panel;
-        private final Random random = new Random();
-        Collision(Mypanel panel) {
+    static class MeteorCheck extends Thread {
+        Mypanel panel;
+        Random random = new Random();
+        MeteorCheck(Mypanel panel) {
             this.panel = panel;
             setDaemon(true);
         }
         @Override
         public void run() {
-            double collisionDistance = config.METEORITE_SIZE * config.COLLISION_FACTOR;
-            double minDistanceSquared = collisionDistance * collisionDistance;
+            double CheckDistance = config.METEORITE_SIZE * config.COLLISION_FACTOR;
+            double minDistanceSquared = CheckDistance * CheckDistance;
             try {
                 while (true) {
                     for (int i = 0; i < panel.meteors.length; i++) {

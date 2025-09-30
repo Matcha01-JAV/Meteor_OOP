@@ -26,7 +26,6 @@ public class Main {
     }
 }
 
-/* หน้าต่างหลัก */
 class Mainframe extends JFrame {
     Mainframe() {
         setSize(config.PANEL_W, config.PANEL_H);
@@ -38,7 +37,6 @@ class Mainframe extends JFrame {
 }
 class Mypanel extends JPanel {
 
-    // โหลดรูปด้วย Toolkit แบบที่ขอ
     Image bg = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "meteor" + File.separator + "src" + File.separator + "Meteorpic" + File.separator + "Background2.jpg");
     Image m1 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "meteor" + File.separator + "src" + File.separator + "Meteorpic" + File.separator + "Metorite1.png");
     Image m2 = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "meteor" + File.separator + "src" + File.separator + "Meteorpic" + File.separator + "Metorite2.png");
@@ -47,14 +45,14 @@ class Mypanel extends JPanel {
 
     Random rnd = new Random();
     JLabel bgLabel;
-    // Meteors
+
     Meteor[] meteors;
-    // HUD
+
     JLabel hud = new JLabel("Meteors: 0");
-    // เธรดตรวจชน + สถานะการทำงาน
+
     Thread ThreadCheck;
 
-    // helper: สร้าง ImageIcon จาก Image พร้อม scale
+
     private static ImageIcon iconOf(Image img, int w, int h) {
         Image scaled = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
         return new ImageIcon(scaled);
@@ -64,18 +62,16 @@ class Mypanel extends JPanel {
         setLayout(null);
         setPreferredSize(new Dimension(config.PANEL_W, config.PANEL_H));
 
-        // พื้นหลัง (JLabel) — แปลง bg (Image) เป็น ImageIcon ที่ขนาดเต็มจอ
         bgLabel = new JLabel(iconOf(bg, config.PANEL_W, config.PANEL_H));
         bgLabel.setBounds(0, 0, config.PANEL_W, config.PANEL_H);
-        add(bgLabel); // ใส่ก่อน = ชั้นหลังสุด
+        add(bgLabel);
 
-        // HUD
         hud.setFont(new Font("Tahoma", Font.BOLD, 20));
         hud.setForeground(Color.YELLOW);
         hud.setBounds(10, 5, 300, 28);
         add(hud);
-        setComponentZOrder(hud, 0); // ให้อยู่บน
-        // สร้างอุกกาบาต
+        setComponentZOrder(hud, 0);
+
         meteors = new Meteor[meteorCount];
 
         for (int i = 0; i < meteorCount; i++) {
@@ -97,16 +93,15 @@ class Mypanel extends JPanel {
             int Startx = rnd.nextInt(Math.max(1, config.PANEL_W - 10 - config.METEORITE_SIZE));
             int Starty = rnd.nextInt(Math.max(1, config.PANEL_H - 30 - config.METEORITE_SIZE));
 
-            double dx = rnd.nextDouble() * 2 - 1; // random -1.0..1.0
-            double dy = rnd.nextDouble() * 2 - 1; // random -1.0..1.0
+            double dx = rnd.nextDouble() * 2 - 1;
+            double dy = rnd.nextDouble() * 2 - 1;
 
-            // ป้องกันไม่ให้ dx,dy = 0 ทั้งคู่
             if (dx == 0 && dy == 0)
             {
                 dx = 1;
             }
 
-            double spd = config.MIN_SPEED + rnd.nextDouble() * 2.8;
+            double spd = config.MIN_SPEED + rnd.nextDouble() * 3.5;
 
             dx *= spd;
             dy *= spd;
@@ -132,13 +127,8 @@ class Mypanel extends JPanel {
                 try {
                     while (true) {
                         final int alive = panel.getAliveCount();
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                panel.hud.setText("Meteors: " + alive);
-                                panel.repaint();
-                            }
-                        });
+                        panel.hud.setText("Meteors: " + alive);
+                        panel.repaint();
                         Thread.sleep(100);
                     }
                 } catch (InterruptedException ignored) {}
@@ -164,13 +154,13 @@ class Mypanel extends JPanel {
     void spawnExplosion(int x, int y) {
         JLabel ex = new JLabel(iconOf(m4, config.METEORITE_SIZE, config.METEORITE_SIZE));
         ex.setBounds(x, y, config.METEORITE_SIZE, config.METEORITE_SIZE);
-        // อัปเดต UI ตรงๆ (ไม่ผ่าน Runnable)
+
         add(ex);
         setComponentZOrder(ex, 0);
         ex.setVisible(true);
         revalidate();
         repaint();
-        // Thread สำหรับลบ explosion
+
         Thread explosionThread = new Thread() {
             @Override
             public void run() {
@@ -190,7 +180,6 @@ class Mypanel extends JPanel {
         explosionThread.start();
     }
 
-    // อุกกาบาตเป็น JLabel
 class Meteor extends JLabel {
         Mypanel panel;
         boolean alive = true;
@@ -295,10 +284,12 @@ class MeteorMove extends Thread {
                         for (int j = i + 1; j < arr.length; j++)
                         {
                             Meteor b = arr[j];
-                            if (b == null || !b.alive) continue;
+                            if (b == null || !b.alive) {
+                                continue;
+                            }
 
-                            double dx = ax - b.cx();
-                            double dy = ay - b.cy();
+                            double dx   = ax - b.cx();
+                            double dy   = ay - b.cy();
                             double distSq = (dx * dx) + (dy * dy);
 
                             if (distSq < minDistSq) {

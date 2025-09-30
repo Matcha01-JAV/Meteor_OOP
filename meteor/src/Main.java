@@ -94,20 +94,24 @@ class Mypanel extends JPanel {
             ImageIcon icon = iconOf(pick, config.METEORITE_SIZE, config.METEORITE_SIZE);
 
 
-            int Speedx = rnd.nextInt(Math.max(1, config.PANEL_W - 10 - config.METEORITE_SIZE));
-            int Speedy = rnd.nextInt(Math.max(1, config.PANEL_H - 30 - config.METEORITE_SIZE));
+            int Startx = rnd.nextInt(Math.max(1, config.PANEL_W - 10 - config.METEORITE_SIZE));
+            int Starty = rnd.nextInt(Math.max(1, config.PANEL_H - 30 - config.METEORITE_SIZE));
 
             double dx = rnd.nextDouble() * 2 - 1; // random -1.0..1.0
             double dy = rnd.nextDouble() * 2 - 1; // random -1.0..1.0
 
             // ป้องกันไม่ให้ dx,dy = 0 ทั้งคู่
-            if (dx == 0 && dy == 0) dx = 1;
+            if (dx == 0 && dy == 0)
+            {
+                dx = 1;
+            }
 
             double spd = config.MIN_SPEED + rnd.nextDouble() * 2.8;
+
             dx *= spd;
             dy *= spd;
 
-            Meteor m = new Meteor(this, icon, Speedx, Speedy, dx, dy);
+            Meteor m = new Meteor(this, icon, Startx, Starty , dx, dy);
             meteors[i] = m;
             add(m);
             setComponentZOrder(m, 0);
@@ -115,6 +119,7 @@ class Mypanel extends JPanel {
             Thread th = new Thread(new MeteorMove(m, this), "meteor-" + i);
             th.setDaemon(true);
             th.start();
+
         }
 
         class hubThread extends Thread {
@@ -139,15 +144,12 @@ class Mypanel extends JPanel {
                 } catch (InterruptedException ignored) {}
             }
         }
-
-        // เธรดตรวจชน
         hubThread hubThread = new hubThread(this);
         hubThread.start();
         ThreadCheck = new MeteorCheck(this);
         ThreadCheck.setDaemon(true);
         ThreadCheck.start();
     }
-
     int getAliveCount() {
         int c = 0;
         for (Meteor m : meteors)
@@ -213,9 +215,7 @@ class Meteor extends JLabel {
             setVisible(false);
         }
 
-        double cx() {
-            return x + getWidth() / 2.0;
-        }
+        double cx() { return x + getWidth() / 2.0; }
 
         double cy() {
             return y + getHeight() / 2.0;
@@ -252,6 +252,7 @@ class MeteorMove extends Thread {
                     if (m.y <= 0) {
                         m.y = 0;
                         m.Speedy = Math.abs(m.Speedy)*config.BOUNCE_ACCEL;
+
                     } else if (m.y >= config.PANEL_H - 35 - m.getHeight()) {
                         m.y = config.PANEL_H - 35 - m.getHeight();
                         m.Speedy = -Math.abs(m.Speedy)*config.BOUNCE_ACCEL;
@@ -298,20 +299,25 @@ class MeteorMove extends Thread {
 
                             double dx = ax - b.cx();
                             double dy = ay - b.cy();
-                            double distSq = dx * dx + dy * dy;
+                            double distSq = (dx * dx) + (dy * dy);
 
                             if (distSq < minDistSq) {
-                                // ตำแหน่งระเบิด (กลางระหว่างสองดวง)
-                                double midX = (ax + b.cx()) / 2.0;
-                                double midY = (ay + b.cy()) / 2.0;
-                                int ex = (int) (midX - config.METEORITE_SIZE / 2.0);
-                                int ey = (int) (midY - config.METEORITE_SIZE / 2.0);
-                                panel.spawnExplosion(ex, ey);
+
                                 if (random.nextBoolean())
                                 {
+                                    double midX = a.cx();
+                                    double midY = a.cy();
+                                    int ex = (int)(midX - config.METEORITE_SIZE/2.0);
+                                    int ey = (int)(midY - config.METEORITE_SIZE/2.0);
+                                    panel.spawnExplosion(ex, ey);
                                     a.die();
                                 } else
                                 {
+                                    double midX = b.cx();
+                                    double midY = b.cy();
+                                    int ex = (int)(midX - config.METEORITE_SIZE/2.0);
+                                    int ey = (int)(midY - config.METEORITE_SIZE/2.0);
+                                    panel.spawnExplosion(ex, ey);
                                     b.die();
                                 }
                             }

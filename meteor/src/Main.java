@@ -52,8 +52,7 @@ class Mypanel extends JPanel {
     // HUD
     JLabel hud = new JLabel("Meteors: 0");
     // เธรดตรวจชน + สถานะการทำงาน
-    Thread collisionThread;
-    boolean running = true;
+    Thread ThreadCheck;
 
     // helper: สร้าง ImageIcon จาก Image พร้อม scale
     private static ImageIcon iconOf(Image img, int w, int h) {
@@ -95,8 +94,8 @@ class Mypanel extends JPanel {
             ImageIcon icon = iconOf(pick, config.METEORITE_SIZE, config.METEORITE_SIZE);
 
 
-            int sx = rnd.nextInt(Math.max(1, config.PANEL_W - config.METEORITE_SIZE));
-            int sy = rnd.nextInt(Math.max(1, config.PANEL_H - config.METEORITE_SIZE));
+            int Speedx = rnd.nextInt(Math.max(1, config.PANEL_W - 10 - config.METEORITE_SIZE));
+            int Speedy = rnd.nextInt(Math.max(1, config.PANEL_H - 30 - config.METEORITE_SIZE));
 
             double dx = rnd.nextDouble() * 2 - 1; // random -1.0..1.0
             double dy = rnd.nextDouble() * 2 - 1; // random -1.0..1.0
@@ -104,16 +103,11 @@ class Mypanel extends JPanel {
             // ป้องกันไม่ให้ dx,dy = 0 ทั้งคู่
             if (dx == 0 && dy == 0) dx = 1;
 
-            // normalize ให้มีความยาวตาม speed
-            double len = Math.hypot(dx, dy);
-            dx = dx / len;
-            dy = dy / len;
-
             double spd = config.MIN_SPEED + rnd.nextDouble() * 2.8;
             dx *= spd;
             dy *= spd;
 
-            Meteor m = new Meteor(this, icon, sx, sy, dx, dy);
+            Meteor m = new Meteor(this, icon, Speedx, Speedy, dx, dy);
             meteors[i] = m;
             add(m);
             setComponentZOrder(m, 0);
@@ -149,9 +143,9 @@ class Mypanel extends JPanel {
         // เธรดตรวจชน
         hubThread hubThread = new hubThread(this);
         hubThread.start();
-        collisionThread = new MeteorCheck(this);
-        collisionThread.setDaemon(true);
-        collisionThread.start();
+        ThreadCheck = new MeteorCheck(this);
+        ThreadCheck.setDaemon(true);
+        ThreadCheck.start();
     }
 
     int getAliveCount() {
@@ -198,15 +192,15 @@ class Mypanel extends JPanel {
 class Meteor extends JLabel {
         Mypanel panel;
         boolean alive = true;
-        double x, y, sx, sy;
+        double x, y, Speedx, Speedy;
 
         Meteor(Mypanel p, ImageIcon icon, int MeteorX, int MeteorY, double speedx, double speedy) {
             super(icon);
             panel = p;
             x = MeteorX;
             y = MeteorY;
-            sx = speedx;
-            sy = speedy;
+            Speedx = speedx;
+            Speedy = speedy;
             setBounds(MeteorX, MeteorY, config.METEORITE_SIZE, config.METEORITE_SIZE);
             setVisible(true);
         }
@@ -240,41 +234,28 @@ class MeteorMove extends Thread {
         public void run() {
             try {
                 while (true) {
-                    m.x += m.sx;
-                    m.y += m.sy;
-                    boolean bounce = false;
+                    m.x += m.Speedx;
+                    m.y += m.Speedy;
+                    if (m.Speedx >= config.MAX_SPEED){
+                        m.Speedx = config.MAX_SPEED;
+                    }
+                    if (m.Speedy >= config.MAX_SPEED){
+                        m.Speedy = config.MAX_SPEED;
+                    }
                     if (m.x <= 0) {
                         m.x = 0;
-                        m.sx = Math.abs(m.sx);
-                        bounce = true;
-                    } else if (m.x >= config.PANEL_W - m.getWidth()) {
-                        m.x = config.PANEL_W - m.getWidth();
-                        m.sx = -Math.abs(m.sx);
-                        bounce = true;
+                        m.Speedx = Math.abs(m.Speedx)*config.BOUNCE_ACCEL;
+                    } else if (m.x >= config.PANEL_W - 10 - m.getWidth()) {
+                        m.x = config.PANEL_W - 10 - m.getWidth();
+                        m.Speedx = -Math.abs(m.Speedx)*config.BOUNCE_ACCEL;
                     }
                     if (m.y <= 0) {
                         m.y = 0;
-                        m.sy = Math.abs(m.sy);
-                        bounce = true;
-                    } else if (m.y >= config.PANEL_H - m.getHeight()) {
-                        m.y = config.PANEL_H - m.getHeight();
-                        m.sy = -Math.abs(m.sy);
-                        bounce = true;
+                        m.Speedy = Math.abs(m.Speedy)*config.BOUNCE_ACCEL;
+                    } else if (m.y >= config.PANEL_H - 35 - m.getHeight()) {
+                        m.y = config.PANEL_H - 35 - m.getHeight();
+                        m.Speedy = -Math.abs(m.Speedy)*config.BOUNCE_ACCEL;
                     }
-                    if (bounce) {
-                        double len = Math.hypot(m.sx, m.sy);
-                        double sp = len * config.BOUNCE_ACCEL;
-                        if (sp > config.MAX_SPEED)
-                        {
-                            sp = config.MAX_SPEED;
-                        }
-                        if (len != 0)
-                        {
-                            m.sx = (m.sx / len) * sp;
-                            m.sy = (m.sy / len) * sp;
-                        }
-                    }
-
 
                     int fx = (int) Math.round(m.x);
                     int fy = (int) Math.round(m.y);
@@ -294,8 +275,8 @@ class MeteorMove extends Thread {
         }
         @Override
         public void run() {
-            final double hitDiameter = config.METEORITE_SIZE * config.COLLISION_FACTOR;
-            final double minDistSq = hitDiameter * hitDiameter;
+            double hitDiameter = config.METEORITE_SIZE * config.HIT_FACTOR;
+            double minDistSq = hitDiameter * hitDiameter;
 
             try {
                 while (true) {
